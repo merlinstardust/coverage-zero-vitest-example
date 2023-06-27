@@ -1,0 +1,74 @@
+name: Pull Request CI
+
+on:
+  pull_request:
+    types:
+      - opened
+      - edited
+      - synchronize
+      - reopened
+  workflow_call:
+
+jobs:
+  lint:
+    name: Linting
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: '☁️ checkout repository'
+        uses: actions/checkout@v2
+
+      - name: '🔧 setup node'
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: '🔧 install npm@latest'
+        run: npm i -g npm@latest
+
+      - name: '📦 install dependencies'
+        uses: bahmutov/npm-install@v1
+
+      - name: '🔍 lint code'
+        run: npm run lint
+
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: '☁️ checkout repository'
+        uses: actions/checkout@v2
+
+      - name: '🔧 setup node'
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: '🔧 install npm@latest'
+        run: npm i -g npm@latest
+
+      - name: '📦 install dependencies'
+        uses: bahmutov/npm-install@v1
+
+      - name: '📦 build extension'
+        run: npm run build
+
+      - name: '🔍 run tests'
+        run: npm run test:coverage
+
+      - name: '📊 report coverage'
+        uses: romeovs/lcov-reporter-action@2a28ec3e25fb7eae9cb537e9141603486f810d1a
+        # The reason for using a hash rather than a version/tag, is the project
+        # failed in publishing this release: https://github.com/romeovs/lcov-reporter-action/issues/47
+        with:
+          delete-old-comments: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          lcov-file: ./coverage/lcov.info
+
+      - name: '📊 gate based on coverage'
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        with:
+          fail_below_min: true
+          filename: coverage/cobertura-coverage.xml
+          thresholds: '75 85'
