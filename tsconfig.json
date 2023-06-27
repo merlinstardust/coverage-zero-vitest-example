@@ -25,7 +25,6 @@
       "./node_modules/@types"
     ],
     "types": [
-      "vitest/globals",
       "@testing-library/jest-dom"
     ],
     "useDefineForClassFields": true,
